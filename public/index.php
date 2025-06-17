@@ -1,27 +1,29 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+define('BASE_PATH', dirname(__DIR__));
 
-use Aries\Core\Config\Loader;
+require BASE_PATH . '/vendor/autoload.php';
+
 use Aries\Http\Server;
+use Aries\Http\Request;
+use Aries\Http\Response;
+use Aries\Core\Config\Loader;
 
-// 显示错误信息
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// 加载配置
-$config = new Loader(__DIR__ . '/../config');
-echo "Config loaded\n";
+// 创建配置加载器
+$config = new Loader(BASE_PATH . '/config');
 
 // 创建服务器实例
 $server = new Server($config);
-echo "Server created\n";
 
 // 添加路由
-$server->addRoute('GET', '/hello', function($request) {
-    return 'Hello World!';
+$server->addRoute('GET', '/', function(Request $request) {
+    return new Response('Hello World!');
+});
+
+$server->addRoute('GET', '/hello', function(Request $request) {
+    $name = $request->getQuery('name', 'Guest');
+    return new Response("Hello, {$name}!");
 });
 
 // 启动服务器
-echo "Starting server...\n";
 $server->start(); 

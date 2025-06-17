@@ -1,6 +1,6 @@
 {
-    "name": "aries/framework",
-    "description": "A PHP HTTP Framework",
+    "name": "yelei/aries",
+    "description": "A lightweight PHP framework based on Swoole",
     "type": "project",
     "require": {
         "php": "^7.4",
@@ -8,26 +8,31 @@
         "symfony/yaml": "^5.4",
         "symfony/config": "^5.4",
         "monolog/monolog": "^2.0",
-        "doctrine/dbal": "^3.0",
-        "psr/container": "^1.0",
-        "psr/log": "^1.1",
-        "psr/http-message": "^1.0",
-        "psr/http-server-handler": "^1.0",
-        "psr/http-server-middleware": "^1.0"
+        "doctrine/dbal": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
     },
     "autoload": {
         "psr-4": {
             "Aries\\": "framework/",
             "App\\": "app/"
-        }
+        },
+        "files": [
+            "framework/Support/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
         }
     },
-    "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "swoole/ide-helper": "^6.0"
-    }
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }
