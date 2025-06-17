@@ -1,0 +1,12 @@
+parameters:
+    level: 5
+    paths:
+        - framework
+        - app
+    excludePaths:
+        - vendor/*
+    checkMissingIterableValueType: false
+    ignoreErrors:
+        - '#PHPDoc tag @var#'
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+::get\(\)#'
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+::set\(\)#' 
