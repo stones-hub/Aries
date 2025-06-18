@@ -9,6 +9,11 @@ use Aries\Core\Config\Loaders\YamlLoader;
 class Loader
 {
     /**
+     * 单例实例
+     */
+    private static $instance;
+
+    /**
      * 配置目录
      */
     protected $configPath;
@@ -26,11 +31,22 @@ class Loader
     /**
      * 构造函数
      */
-    public function __construct(string $configPath)
+    private function __construct(string $configPath)
     {
         $this->configPath = $configPath;
         $this->registerLoaders();
         $this->loadConfigs();
+    }
+
+    /**
+     * 获取单例实例
+     */
+    public static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self(dirname(__DIR__, 3) . '/config');
+        }
+        return self::$instance;
     }
 
     /**
