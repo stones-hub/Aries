@@ -3,10 +3,14 @@ parameters:
     paths:
         - framework
         - app
+        - config
     excludePaths:
         - vendor/*
     checkMissingIterableValueType: false
     ignoreErrors:
         - '#PHPDoc tag @var#'
         - '#Call to an undefined method [a-zA-Z0-9\\_]+::get\(\)#'
-        - '#Call to an undefined method [a-zA-Z0-9\\_]+::set\(\)#' 
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+::set\(\)#'
+        - '#Undefined type Swoole\\Http\\Server#'
+        - '#Undefined type Swoole\\Http\\Request#'
+        - '#Undefined type Swoole\\Http\\Response#' 

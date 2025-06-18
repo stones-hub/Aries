@@ -2,12 +2,11 @@
 
 namespace Aries\Core\Config;
 
-use Symfony\Component\Yaml\Yaml;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Config\Loader\LoaderInterface;
-use Symfony\Component\Config\Loader\LoaderResolverInterface;
+use Aries\Core\Config\Loaders\JsonLoader;
+use Aries\Core\Config\Loaders\PhpLoader;
+use Aries\Core\Config\Loaders\YamlLoader;
 
-class Loader implements LoaderInterface
+class Loader
 {
     /**
      * 配置目录
@@ -20,110 +19,108 @@ class Loader implements LoaderInterface
     protected $config = [];
 
     /**
-     * 文件定位器
+     * 配置加载器集合
      */
-    protected $locator;
-
-    /**
-     * 加载器解析器
-     */
-    protected $resolver;
+    protected $loaders = [];
 
     /**
      * 构造函数
      */
     public function __construct(string $configPath)
     {
-        echo "Initializing config loader with path: {$configPath}\n";
         $this->configPath = $configPath;
-        $this->locator = new FileLocator([$configPath]);
-        
-        // 加载所有配置文件
-        $this->config = $this->loadDirectory($configPath);
-        echo "Loaded config: " . print_r($this->config, true) . "\n";
+        $this->registerLoaders();
+        $this->loadConfigs();
     }
 
     /**
-     * 检查是否支持该资源
+     * 注册配置加载器
      */
-    public function supports($resource, ?string $type = null): bool
+    protected function registerLoaders(): void
     {
-        if (is_string($resource)) {
-            $extension = pathinfo($resource, PATHINFO_EXTENSION);
-            return in_array($extension, ['php', 'yaml', 'yml', 'json', 'toml']);
+        $this->loaders = [
+            new PhpLoader(),
+            new YamlLoader(),
+            new JsonLoader(),
+        ];
+    }
+
+    /**
+     * 加载所有配置
+     */
+    protected function loadConfigs(): void
+    {
+        // 递归遍历目录
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->configPath),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $file) {
+            // 跳过目录和点文件
+            if ($file->isDir() || $file->getBasename()[0] === '.') {
+                continue;
+            }
+
+            $filePath = $file->getPathname();
+
+            // 加载配置文件
+            $config = $this->loadFile($filePath);
+            if ($config === null) {
+                continue;
+            }
+
+            // 合并配置
+            $this->mergeConfig($config);
         }
-        return false;
     }
 
     /**
-     * 获取加载器解析器
+     * 加载单个配置文件
      */
-    public function getResolver(): LoaderResolverInterface
+    protected function loadFile(string $file): ?array
     {
-        return $this->resolver;
-    }
+        echo "Loading file: {$file}\n";
 
-    /**
-     * 设置加载器解析器
-     */
-    public function setResolver(LoaderResolverInterface $resolver): void
-    {
-        $this->resolver = $resolver;
-    }
-
-    /**
-     * 加载配置
-     */
-    public function load($resource, ?string $type = null)
-    {
-        if (is_dir($resource)) {
-            return $this->loadDirectory($resource);
-        }
-
-        return $this->loadFile($resource);
-    }
-
-    /**
-     * 加载目录
-     */
-    protected function loadDirectory(string $directory)
-    {
-        echo "Loading directory: {$directory}\n";
-        $config = [];
-        $files = glob($directory . '/*.{php,yaml,yml,json,toml}', GLOB_BRACE);
-        echo "Found files: " . print_r($files, true) . "\n";
-
-        foreach ($files as $file) {
-            echo "Loading file: {$file}\n";
-            $key = basename($file, '.' . pathinfo($file, PATHINFO_EXTENSION));
-            $config[$key] = $this->loadFile($file);
-            echo "Loaded config for {$key}: " . print_r($config[$key], true) . "\n";
+        foreach ($this->loaders as $loader) {
+            if ($loader->supports($file)) {
+                return $loader->load($file);
+            }
         }
 
-        return $config;
+        return null;
     }
 
     /**
-     * 加载文件
+     * 合并配置
      */
-    protected function loadFile(string $file)
+    protected function mergeConfig(array $config): void
     {
-        $extension = pathinfo($file, PATHINFO_EXTENSION);
-
-        switch ($extension) {
-            case 'php':
-                return require $file;
-            case 'yaml':
-            case 'yml':
-                return Yaml::parseFile($file);
-            case 'json':
-                return json_decode(file_get_contents($file), true);
-            case 'toml':
-                // TODO: 实现 TOML 解析
-                throw new \RuntimeException('TOML format not supported yet');
-            default:
-                throw new \RuntimeException(sprintf('Unsupported file format: %s', $extension));
+        foreach ($config as $key => $value) {
+            if (isset($this->config[$key]) && is_array($this->config[$key]) && is_array($value)) {
+                // 如果都是数组，递归合并
+                $this->config[$key] = $this->arrayMergeRecursive($this->config[$key], $value);
+            } else {
+                // 否则直接覆盖
+                $this->config[$key] = $value;
+            }
         }
+    }
+
+    /**
+     * 递归合并数组
+     */
+    protected function arrayMergeRecursive(array $array1, array $array2): array
+    {
+        foreach ($array2 as $key => $value) {
+            if (isset($array1[$key]) && is_array($array1[$key]) && is_array($value)) {
+                $array1[$key] = $this->arrayMergeRecursive($array1[$key], $value);
+            } else {
+                $array1[$key] = $value;
+            }
+        }
+
+        return $array1;
     }
 
     /**
@@ -135,7 +132,7 @@ class Loader implements LoaderInterface
         $config = $this->config;
 
         foreach ($keys as $segment) {
-            if (!isset($config[$segment])) {
+            if (! isset($config[$segment])) {
                 return $default;
             }
             $config = $config[$segment];
@@ -147,14 +144,14 @@ class Loader implements LoaderInterface
     /**
      * 设置配置
      */
-    public function set(string $key, $value)
+    public function set(string $key, $value): void
     {
         $keys = explode('.', $key);
         $config = &$this->config;
 
         while (count($keys) > 1) {
             $key = array_shift($keys);
-            if (!isset($config[$key])) {
+            if (! isset($config[$key])) {
                 $config[$key] = [];
             }
             $config = &$config[$key];
@@ -162,4 +159,12 @@ class Loader implements LoaderInterface
 
         $config[array_shift($keys)] = $value;
     }
-} 
+
+    /**
+     * 获取所有配置
+     */
+    public function all(): array
+    {
+        return $this->config;
+    }
+}
