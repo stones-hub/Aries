@@ -7,9 +7,9 @@ use Aries\Http\Response;
 
 class DashboardController
 {
-    public function index(Request $request)
+    public function index(Request $request, Response $response)
     {
-        return (new Response())->json([
+        $response->json([
             'stats' => [
                 'users' => 1000,
                 'posts' => 500,

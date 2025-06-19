@@ -97,8 +97,16 @@ class Server
         $context = Context::getContext();
         
         try {
-            $request = new Request($swooleRequest);
-            $response = new Response($swooleResponse);
+            // 创建框架的 Request 对象
+            $request = new Request();
+            // 将 Swoole 请求的属性复制到框架的 Request 对象
+            foreach (get_object_vars($swooleRequest) as $property => $value) {
+                $request->$property = $value;
+            }
+
+            // 将 swooleResponse 转换为我们的 Response 类型
+            /** @var Response $response */
+            $response = $swooleResponse;
 
             // 将请求和响应对象存储在上下文中
             $context->set('request', $request);
@@ -114,47 +122,32 @@ class Server
             $middleware = $route->getMiddleware();
             $pipeline = new Pipeline($this->container);
             
-            $result = $pipeline->send($request)
+            $pipeline->send($request)
                 ->through($middleware)
                 ->then(function ($request) use ($route, $response) {
-                    $result = $route->run($request, $this->container);
-                    
-                    // 如果控制器返回的是数组，使用已有的 Response 对象包装
-                    if (is_array($result)) {
-                        return $response->json($result);
-                    }
-                    
-                    // 如果控制器返回的是 Response 对象，确保它有 swooleResponse
-                    if ($result instanceof Response && !$result->hasSwooleResponse()) {
-                        return $response->withStatus($result->getStatus())
-                            ->withHeaders($result->getHeaders())
-                            ->withContent($result->getContent());
-                    }
-                    
-                    return $result;
+                    // 使用框架的 Request 和 Response 对象
+                    $route->run($request, $response, $this->container);
                 });
 
-            // 如果返回的不是 Response 对象，使用已有的 Response 对象包装
-            if (!$result instanceof Response) {
-                $result = $response->json($result);
-            }
-
-            $result->send();
         } catch (\Exception $e) {
-            $this->handleException($e, $swooleResponse)->send();
+            /** @var Response $response */
+            $response = $swooleResponse;
+            $this->handleException($e, $response);
         } finally {
             // 清理上下文
             Context::clear();
         }
     }
 
-    private function handleException(\Exception $e, SwooleResponse $response): Response
+    private function handleException(\Exception $e, Response $response): void
     {
         $statusCode = $e->getCode() ?: 500;
-        return (new Response($response))->json([
+        $response->status($statusCode);
+        $response->header('Content-Type', 'application/json');
+        $response->end(json_encode([
             'error' => $e->getMessage(),
             'code' => $statusCode
-        ], $statusCode);
+        ], JSON_UNESCAPED_UNICODE));
     }
 
     public function getRouter(): Router

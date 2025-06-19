@@ -235,7 +235,7 @@ class Container
      * @param string $abstract
      * @return bool
      */
-    protected function bound(string $abstract): bool
+    public function bound(string $abstract): bool
     {
         return isset($this->bindings[$abstract]) ||
                isset($this->instances[$abstract]);

@@ -4,92 +4,97 @@ namespace Aries\Http;
 
 use Swoole\Http\Request as SwooleRequest;
 
-class Request
+class Request extends SwooleRequest
 {
-    private SwooleRequest $request;
-    private array $routeParameters = [];
-
-    public function __construct(SwooleRequest $request)
-    {
-        $this->request = $request;
-    }
-
+    /**
+     * 获取请求方法
+     */
     public function getMethod(): string
     {
-        return strtoupper($this->request->server['request_method']);
+        return $this->server['request_method'];
     }
 
+    /**
+     * 获取请求路径
+     */
     public function getPath(): string
     {
-        return $this->request->server['request_uri'];
+        return $this->server['request_uri'] ?? '/';
     }
 
-    public function input(string $key = null, $default = null)
+    /**
+     * 获取所有请求头
+     */
+    public function getHeaders(): array
     {
-        $data = [];
-        
-        if ($this->request->get) {
-            $data = array_merge($data, $this->request->get);
+        return $this->header ?? [];
+    }
+
+    /**
+     * 获取指定请求头
+     */
+    public function getHeader(string $name, $default = null): ?string
+    {
+        return $this->header[$name] ?? $default;
+    }
+
+    /**
+     * 获取所有GET参数
+     */
+    public function getQueryParams(): array
+    {
+        return $this->get ?? [];
+    }
+
+    /**
+     * 获取所有POST参数
+     */
+    public function getPostParams(): array
+    {
+        return $this->post ?? [];
+    }
+
+    /**
+     * 获取原始请求体
+     */
+    public function getRawContent(): string
+    {
+        return $this->rawContent();
+    }
+
+    /**
+     * 获取JSON请求体
+     */
+    public function getJsonBody(): ?array
+    {
+        if ($this->isJson()) {
+            return json_decode($this->getRawContent(), true);
         }
-        
-        if ($this->request->post) {
-            $data = array_merge($data, $this->request->post);
-        }
-
-        if ($key === null) {
-            return $data;
-        }
-
-        return $data[$key] ?? $default;
+        return null;
     }
 
-    public function all(): array
+    /**
+     * 判断是否是JSON请求
+     */
+    public function isJson(): bool
     {
-        return $this->input();
+        $contentType = $this->getHeader('content-type');
+        return $contentType && strpos($contentType, 'application/json') !== false;
     }
 
-    public function get(string $key, $default = null)
+    /**
+     * 获取所有上传的文件
+     */
+    public function getUploadedFiles(): array
     {
-        return $this->request->get[$key] ?? $default;
+        return $this->files ?? [];
     }
 
-    public function post(string $key, $default = null)
+    /**
+     * 获取Cookie值
+     */
+    public function getCookie(string $name, $default = null)
     {
-        return $this->request->post[$key] ?? $default;
-    }
-
-    public function header(string $key, $default = null)
-    {
-        return $this->request->header[strtolower($key)] ?? $default;
-    }
-
-    public function hasFile(string $key): bool
-    {
-        return isset($this->request->files[$key]);
-    }
-
-    public function file(string $key)
-    {
-        return $this->request->files[$key] ?? null;
-    }
-
-    public function cookie(string $key, $default = null)
-    {
-        return $this->request->cookie[$key] ?? $default;
-    }
-
-    public function setRouteParameters(array $parameters): void
-    {
-        $this->routeParameters = $parameters;
-    }
-
-    public function route(string $key, $default = null)
-    {
-        return $this->routeParameters[$key] ?? $default;
-    }
-
-    public function routeParameters(): array
-    {
-        return $this->routeParameters;
+        return $this->cookie[$name] ?? $default;
     }
 } 

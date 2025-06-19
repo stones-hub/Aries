@@ -44,6 +44,9 @@ class Pipeline
         return function ($stack, $pipe) {
             return function ($passable) use ($stack, $pipe) {
                 if (is_string($pipe)) {
+                    if (!$this->container->bound($pipe)) {
+                        $this->container->bind($pipe);
+                    }
                     $pipe = $this->container->make($pipe);
                 }
 

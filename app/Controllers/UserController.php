@@ -7,9 +7,9 @@ use Aries\Http\Response;
 
 class UserController
 {
-    public function index(Request $request)
+    public function index(Request $request, Response $response)
     {
-        return (new Response())->json([
+        $response->json([
             'users' => [
                 ['id' => 1, 'name' => 'John Doe'],
                 ['id' => 2, 'name' => 'Jane Doe']
@@ -17,37 +17,37 @@ class UserController
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Response $response)
     {
-        $name = $request->input('name');
-        return (new Response())->json([
+        $name = $request->getPostParams()['name'];
+        $response->json([
             'message' => "User {$name} created successfully",
             'user' => ['id' => 3, 'name' => $name]
         ], 201);
     }
 
-    public function show(Request $request)
+    public function show(Request $request, Response $response)
     {
-        $id = $request->route('id');
-        return (new Response())->json([
+        $id = $request->getQueryParams()['id'];
+        $response->json([
             'user' => ['id' => $id, 'name' => 'John Doe']
         ]);
     }
 
-    public function update(Request $request)
+    public function update(Request $request, Response $response)
     {
-        $id = $request->route('id');
-        $name = $request->input('name');
-        return (new Response())->json([
+        $id = $request->getQueryParams()['id'];
+        $name = $request->getPostParams()['name'];
+        $response->json([
             'message' => "User {$id} updated successfully",
             'user' => ['id' => $id, 'name' => $name]
         ]);
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request, Response $response)
     {
-        $id = $request->route('id');
-        return (new Response())->json([
+        $id = $request->getQueryParams()['id'];
+        $response->json([
             'message' => "User {$id} deleted successfully"
         ]);
     }

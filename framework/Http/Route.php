@@ -4,6 +4,7 @@ namespace Aries\Http;
 
 use Closure;
 use Aries\Container\Container;
+use Aries\Http\Response;
 
 class Route
 {
@@ -11,7 +12,6 @@ class Route
     private string $uri;
     private $action;
     private array $middleware = [];
-    private array $parameters = [];
 
     public function __construct(string $method, string $uri, $action)
     {
@@ -36,28 +36,19 @@ class Route
             return false;
         }
 
-        $pattern = preg_replace('/\{([a-zA-Z]+)\}/', '(?P<$1>[^/]+)', $this->uri);
-        $pattern = "#^{$pattern}$#";
-
-        if (preg_match($pattern, $path, $matches)) {
-            foreach ($matches as $key => $value) {
-                if (is_string($key)) {
-                    $this->parameters[$key] = $value;
-                }
-            }
-            return true;
-        }
-
-        return false;
+        // 简单的路径匹配，不再提取参数
+        return $this->uri === $path;
     }
 
-    public function run(Request $request, Container $container)
+    public function run(Request $request, Response $response, Container $container): void
     {
-        $request->setRouteParameters($this->parameters);
         // 统一处理控制器方法的格式
         $action = $this->parseAction();
-        // 使用容器的 call 方法统一处理调用
-        return $container->call($action, ['request' => $request]);
+        // 使用容器的 call 方法统一处理调用，传入 response 对象
+        $container->call($action, [
+            'request' => $request,
+            'response' => $response
+        ]);
     }
 
     /**
@@ -90,10 +81,5 @@ class Route
     public function getMiddleware(): array
     {
         return $this->middleware;
-    }
-
-    public function getParameters(): array
-    {
-        return $this->parameters;
     }
 } 

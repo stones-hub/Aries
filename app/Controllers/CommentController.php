@@ -7,10 +7,10 @@ use Aries\Http\Response;
 
 class CommentController
 {
-    public function index(Request $request)
+    public function index(Request $request, Response $response)
     {
-        $postId = $request->route('postId');
-        return (new Response())->json([
+        $postId = $request->getQueryParams()['postId'];
+        $response->json([
             'comments' => [
                 [
                     'id' => 1,
@@ -28,13 +28,13 @@ class CommentController
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Response $response)
     {
-        $postId = $request->route('postId');
-        $content = $request->input('content');
-        $user = $request->input('user');
+        $postId = $request->getQueryParams()['postId'];
+        $content = $request->getPostParams()['content'];
+        $user = $request->getPostParams()['user'];
 
-        return (new Response())->json([
+        $response->json([
             'message' => 'Comment created successfully',
             'comment' => [
                 'id' => 3,

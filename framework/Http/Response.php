@@ -1,130 +1,58 @@
 <?php
-
 namespace Aries\Http;
 
 use Swoole\Http\Response as SwooleResponse;
 
-class Response
+class Response extends SwooleResponse
 {
-    private ?SwooleResponse $swooleResponse;
-    private int $status = 200;
-    private array $headers = [];
-    private string $content = '';
-
-    public function __construct(?SwooleResponse $response = null, array $options = [])
+    /**
+     * 返回JSON响应
+     */
+    public function json($data, int $status = 200): void
     {
-        $this->swooleResponse = $response;
-        
-        if (isset($options['status'])) {
-            $this->status = $options['status'];
-        }
-        
-        if (isset($options['headers'])) {
-            $this->headers = array_merge($this->headers, $options['headers']);
-        }
-        
-        if (isset($options['content'])) {
-            $this->content = $options['content'];
-        }
-
-        // 设置默认的 Content-Type
-        if (!isset($this->headers['Content-Type'])) {
-            $this->headers['Content-Type'] = 'text/html; charset=utf-8';
-        }
-    }
-
-    public function withStatus(int $status): self
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function withHeader(string $name, string $value): self
-    {
-        $this->headers[$name] = $value;
-        return $this;
-    }
-
-    public function withContent(string $content): self
-    {
-        $this->content = $content;
-        return $this;
-    }
-
-    public function json($data, int $status = 200): self
-    {
-        $this->status = $status;
-        $this->headers['Content-Type'] = 'application/json';
-        $this->content = json_encode($data, JSON_UNESCAPED_UNICODE);
-        return $this;
-    }
-
-    public function send(): void
-    {
-        if (!$this->swooleResponse) {
-            throw new \RuntimeException('No Swoole response object available');
-        }
-
-        // 设置状态码
-        $this->swooleResponse->status($this->status);
-
-        // 设置响应头
-        foreach ($this->headers as $name => $value) {
-            $this->swooleResponse->header($name, $value);
-        }
-
-        // 发送响应内容
-        $this->swooleResponse->end($this->content);
-    }
-
-    public function getStatus(): int
-    {
-        return $this->status;
-    }
-
-    public function getHeaders(): array
-    {
-        return $this->headers;
-    }
-
-    public function getContent(): string
-    {
-        return $this->content;
+        $this->status($status);
+        $this->header('Content-Type', 'application/json');
+        $this->end(json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 
     /**
-     * 检查是否有 Swoole Response 对象
+     * 返回普通文本响应
      */
-    public function hasSwooleResponse(): bool
+    public function text(string $content, int $status = 200): void
     {
-        return $this->swooleResponse !== null;
+        $this->status($status);
+        $this->header('Content-Type', 'text/plain; charset=utf-8');
+        $this->end($content);
     }
 
     /**
-     * 批量设置响应头
+     * 返回HTML响应
      */
-    public function withHeaders(array $headers): self
+    public function html(string $content, int $status = 200): void
     {
-        foreach ($headers as $name => $value) {
-            $this->withHeader($name, $value);
-        }
-        return $this;
+        $this->status($status);
+        $this->header('Content-Type', 'text/html; charset=utf-8');
+        $this->end($content);
     }
 
     /**
-     * 获取 Swoole Response 对象
+     * 文件下载
      */
-    public function getSwooleResponse(): ?SwooleResponse
+    public function download(string $file, string $name = null): void
     {
-        return $this->swooleResponse;
+        $name = $name ?? basename($file);
+        $this->header('Content-Type', 'application/octet-stream');
+        $this->header('Content-Disposition', 'attachment; filename="' . $name . '"');
+        $this->sendfile($file);
     }
 
     /**
-     * 设置 Swoole Response 对象
+     * 重定向
      */
-    public function setSwooleResponse(SwooleResponse $response): self
+    public function redirectTo(string $url, int $status = 302): void
     {
-        $this->swooleResponse = $response;
-        return $this;
+        $this->status($status);
+        $this->header('Location', $url);
+        $this->end();
     }
-} 
+}

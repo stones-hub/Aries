@@ -7,9 +7,10 @@ use Aries\Http\Response;
 
 class PostController
 {
-    public function index(Request $request)
+    public function index(Request $request, Response $response)
     {
-        return (new Response())->json([
+        $response->header('Content-Type', 'application/json');
+        $response->end(json_encode([
             'posts' => [
                 [
                     'id' => 1,
@@ -22,57 +23,64 @@ class PostController
                     'content' => 'This is the second post'
                 ]
             ]
-        ]);
+        ]));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Response $response)
     {
-        $title = $request->input('title');
-        $content = $request->input('content');
+        $title = $request->post['title'] ?? '';
+        $content = $request->post['content'] ?? '';
         
-        return (new Response())->json([
+        $response->status(201);
+        $response->header('Content-Type', 'application/json');
+        $response->end(json_encode([
             'message' => 'Post created successfully',
             'post' => [
                 'id' => 3,
                 'title' => $title,
                 'content' => $content
             ]
-        ], 201);
+        ]));
     }
 
-    public function show(Request $request)
+    public function show(Request $request, Response $response)
     {
-        $id = $request->route('id');
-        return (new Response())->json([
+        $id = $request->get['id'] ?? 0;
+        
+        $response->header('Content-Type', 'application/json');
+        $response->end(json_encode([
             'post' => [
                 'id' => $id,
                 'title' => 'Sample Post',
                 'content' => 'This is a sample post content'
             ]
-        ]);
+        ]));
     }
 
-    public function update(Request $request)
+    public function update(Request $request, Response $response)
     {
-        $id = $request->route('id');
-        $title = $request->input('title');
-        $content = $request->input('content');
+        $id = $request->get['id'] ?? 0;
+        $title = $request->post['title'] ?? '';
+        $content = $request->post['content'] ?? '';
 
-        return (new Response())->json([
+        $response->header('Content-Type', 'application/json');
+        $response->end(json_encode([
             'message' => "Post {$id} updated successfully",
             'post' => [
                 'id' => $id,
                 'title' => $title,
                 'content' => $content
             ]
-        ]);
+        ]));
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request, Response $response)
     {
-        $id = $request->route('id');
-        return (new Response())->json([
+        $id = $request->get['id'] ?? 0;
+        
+        $response->header('Content-Type', 'application/json');
+        $response->end(json_encode([
             'message' => "Post {$id} deleted successfully"
-        ]);
+        ]));
     }
 } 
