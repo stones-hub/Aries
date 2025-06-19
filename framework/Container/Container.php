@@ -65,12 +65,15 @@ class Container
      */
     public function bind(string $abstract, $concrete = null, bool $shared = false): void
     {
+        // 删除过期的实例
         $this->dropStaleInstances($abstract);
 
+        // 如果未提供具体实现，则使用抽象作为具体实现
         if (is_null($concrete)) {
             $concrete = $abstract;
         }
 
+        // 如果具体实现不是闭包，则获取闭包
         if (!$concrete instanceof Closure) {
             $concrete = $this->getClosure($abstract, $concrete);
         }
