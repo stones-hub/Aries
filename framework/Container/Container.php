@@ -103,10 +103,10 @@ class Container
      *
      * @param string $abstract
      * @param mixed ...$parameters
-     * @return mixed
+     * @return object
      * @throws Exception
      */
-    public function make(string $abstract, ...$parameters): mixed
+    public function make(string $abstract, ...$parameters)
     {
         return $this->resolve($abstract, ...$parameters);
     }
@@ -117,10 +117,10 @@ class Container
      *
      * @param string $abstract
      * @param mixed ...$parameters
-     * @return mixed
+     * @return object
      * @throws Exception
      */
-    protected function resolve(string $abstract, ...$parameters): mixed
+    protected function resolve(string $abstract, ...$parameters)
     {
         // 如果已经有缓存的实例，直接返回
         if (isset($this->instances[$abstract])) {
