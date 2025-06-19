@@ -69,7 +69,7 @@ class Server
             if (isset($groupConfig['routes'])) {
                 $this->router->group([
                     'prefix' => $groupConfig['prefix'] ?? '',
-                    'middleware' => $groupConfig['middleware'] ?? [],
+                    'middleware' => $groupConfig['middleware'] ?? []
                 ], function ($router) use ($groupConfig) {
                     foreach ($groupConfig['routes'] as $route) {
                         [$method, $uri, $action] = $route;
@@ -93,12 +93,19 @@ class Server
 
     public function handleRequest(SwooleRequest $swooleRequest, SwooleResponse $swooleResponse): void
     {
-        $request = new Request($swooleRequest);
-        $response = new Response($swooleResponse);
-
+        // 创建新的请求上下文
+        $context = Context::getContext();
+        
         try {
+            $request = new Request($swooleRequest);
+            $response = new Response($swooleResponse);
+
+            // 将请求和响应对象存储在上下文中
+            $context->set('request', $request);
+            $context->set('response', $response);
+
             $route = $this->router->match($request->getMethod(), $request->getPath());
-            
+
             if ($route === null) {
                 throw new \Exception('Route not found', 404);
             }
@@ -107,29 +114,47 @@ class Server
             $middleware = $route->getMiddleware();
             $pipeline = new Pipeline($this->container);
             
-            $response = $pipeline->send($request)
+            $result = $pipeline->send($request)
                 ->through($middleware)
-                ->then(function ($request) use ($route) {
-                    return $route->run($request, $this->container);
+                ->then(function ($request) use ($route, $response) {
+                    $result = $route->run($request, $this->container);
+                    
+                    // 如果控制器返回的是数组，使用已有的 Response 对象包装
+                    if (is_array($result)) {
+                        return $response->json($result);
+                    }
+                    
+                    // 如果控制器返回的是 Response 对象，确保它有 swooleResponse
+                    if ($result instanceof Response && !$result->hasSwooleResponse()) {
+                        return $response->withStatus($result->getStatus())
+                            ->withHeaders($result->getHeaders())
+                            ->withContent($result->getContent());
+                    }
+                    
+                    return $result;
                 });
 
-        } catch (\Exception $e) {
-            $response = $this->handleException($e);
-        }
+            // 如果返回的不是 Response 对象，使用已有的 Response 对象包装
+            if (!$result instanceof Response) {
+                $result = $response->json($result);
+            }
 
-        $response->send();
+            $result->send();
+        } catch (\Exception $e) {
+            $this->handleException($e, $swooleResponse)->send();
+        } finally {
+            // 清理上下文
+            Context::clear();
+        }
     }
 
-    private function handleException(\Exception $e): Response
+    private function handleException(\Exception $e, SwooleResponse $response): Response
     {
         $statusCode = $e->getCode() ?: 500;
-        return new Response(null, [
-            'status' => $statusCode,
-            'content' => json_encode([
-                'error' => $e->getMessage(),
-                'code' => $statusCode
-            ])
-        ]);
+        return (new Response($response))->json([
+            'error' => $e->getMessage(),
+            'code' => $statusCode
+        ], $statusCode);
     }
 
     public function getRouter(): Router

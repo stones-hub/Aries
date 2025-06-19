@@ -6,34 +6,34 @@ use Swoole\Http\Request as SwooleRequest;
 
 class Request
 {
-    private SwooleRequest $swooleRequest;
+    private SwooleRequest $request;
     private array $routeParameters = [];
 
     public function __construct(SwooleRequest $request)
     {
-        $this->swooleRequest = $request;
+        $this->request = $request;
     }
 
     public function getMethod(): string
     {
-        return strtoupper($this->swooleRequest->server['request_method']);
+        return strtoupper($this->request->server['request_method']);
     }
 
     public function getPath(): string
     {
-        return $this->swooleRequest->server['request_uri'];
+        return $this->request->server['request_uri'];
     }
 
     public function input(string $key = null, $default = null)
     {
         $data = [];
         
-        if ($this->swooleRequest->get) {
-            $data = array_merge($data, $this->swooleRequest->get);
+        if ($this->request->get) {
+            $data = array_merge($data, $this->request->get);
         }
         
-        if ($this->swooleRequest->post) {
-            $data = array_merge($data, $this->swooleRequest->post);
+        if ($this->request->post) {
+            $data = array_merge($data, $this->request->post);
         }
 
         if ($key === null) {
@@ -50,32 +50,32 @@ class Request
 
     public function get(string $key, $default = null)
     {
-        return $this->swooleRequest->get[$key] ?? $default;
+        return $this->request->get[$key] ?? $default;
     }
 
     public function post(string $key, $default = null)
     {
-        return $this->swooleRequest->post[$key] ?? $default;
+        return $this->request->post[$key] ?? $default;
     }
 
     public function header(string $key, $default = null)
     {
-        return $this->swooleRequest->header[strtolower($key)] ?? $default;
+        return $this->request->header[strtolower($key)] ?? $default;
     }
 
     public function hasFile(string $key): bool
     {
-        return isset($this->swooleRequest->files[$key]);
+        return isset($this->request->files[$key]);
     }
 
     public function file(string $key)
     {
-        return $this->swooleRequest->files[$key] ?? null;
+        return $this->request->files[$key] ?? null;
     }
 
     public function cookie(string $key, $default = null)
     {
-        return $this->swooleRequest->cookie[$key] ?? $default;
+        return $this->request->cookie[$key] ?? $default;
     }
 
     public function setRouteParameters(array $parameters): void

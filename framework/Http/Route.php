@@ -54,21 +54,34 @@ class Route
     public function run(Request $request, Container $container)
     {
         $request->setRouteParameters($this->parameters);
+        // 统一处理控制器方法的格式
+        $action = $this->parseAction();
+        // 使用容器的 call 方法统一处理调用
+        return $container->call($action, ['request' => $request]);
+    }
 
+    /**
+     * 解析路由动作为统一格式
+     * 
+     * @return array|Closure 返回可调用的格式
+     * @throws \RuntimeException
+     */
+    private function parseAction()
+    {
+        // 如果是闭包，直接返回
         if ($this->action instanceof Closure) {
-            return $container->call($this->action, ['request' => $request]);
+            return $this->action;
         }
 
+        // 如果已经是数组格式 [控制器类名, 方法名]
         if (is_array($this->action)) {
-            [$controller, $method] = $this->action;
-            $controller = $container->make($controller);
-            return $container->call([$controller, $method], ['request' => $request]);
+            return $this->action;
         }
 
+        // 如果是字符串格式 "控制器@方法"
         if (is_string($this->action) && str_contains($this->action, '@')) {
             [$controller, $method] = explode('@', $this->action);
-            $controller = $container->make($controller);
-            return $container->call([$controller, $method], ['request' => $request]);
+            return [$controller, $method];
         }
 
         throw new \RuntimeException('Invalid route action.');

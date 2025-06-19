@@ -244,19 +244,37 @@ class Container
     /**
      * 调用一个闭包或类方法，支持依赖注入
      *
-     * @param callable|array $callback
-     * @param array $parameters
+     * @param callable|array $callback 回调，可以是闭包或者 [类名, 方法名] 数组
+     * @param array $parameters 方法参数
      * @return mixed
+     * @throws Exception
      */
     public function call($callback, array $parameters = [])
     {
+        // 处理闭包调用
         if ($callback instanceof Closure) {
             return $callback($this, ...array_values($parameters));
         }
 
-        [$class, $method] = $callback;
-        $instance = is_string($class) ? $this->make($class) : $class;
-        
-        return $instance->$method(...array_values($parameters));
+        // 处理 [类名, 方法名] 格式的调用
+        if (is_array($callback)) {
+            [$className, $method] = $callback;
+
+            // 1. 从容器中解析实例
+            // 如果类还没有绑定到容器中，先进行绑定
+            if (!$this->bound($className)) {
+                $this->bind($className);
+            }
+            $instance = $this->make($className);
+
+            // 2. 调用实例方法
+            if (method_exists($instance, $method)) {
+                return $instance->$method(...array_values($parameters));
+            }
+
+            throw new Exception("Method [{$method}] does not exist on class [" . get_class($instance) . "]");
+        }
+
+        throw new Exception("Invalid callback format");
     }
 } 

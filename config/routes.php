@@ -4,43 +4,49 @@ return [
     'routes' => [
         // 基础路由
         'web' => [
-            ['GET', '/', 'HomeController@index'],
-            ['GET', '/about', 'HomeController@about'],
+            ['GET', '/', 'App\Controllers\HomeController@index'],
+            ['GET', '/about', 'App\Controllers\HomeController@about'],
         ],
         
         // API 路由组
         'api' => [
             'prefix' => 'api',
-            'middleware' => ['api', 'auth'],
+            'middleware' => [
+                App\Middleware\ApiMiddleware::class,
+                App\Middleware\AuthMiddleware::class
+            ],
             'routes' => [
                 // 用户相关
-                ['GET', '/users', 'UserController@index'],
-                ['POST', '/users', 'UserController@store'],
-                ['GET', '/users/{id}', 'UserController@show'],
-                ['PUT', '/users/{id}', 'UserController@update'],
-                ['DELETE', '/users/{id}', 'UserController@destroy'],
+                ['GET', '/users', 'App\Controllers\UserController@index'],
+                ['POST', '/users', 'App\Controllers\UserController@store'],
+                ['GET', '/users/{id}', 'App\Controllers\UserController@show'],
+                ['PUT', '/users/{id}', 'App\Controllers\UserController@update'],
+                ['DELETE', '/users/{id}', 'App\Controllers\UserController@destroy'],
                 
                 // 文章相关
-                ['GET', '/posts', 'PostController@index'],
-                ['POST', '/posts', 'PostController@store'],
-                ['GET', '/posts/{id}', 'PostController@show'],
-                ['PUT', '/posts/{id}', 'PostController@update'],
-                ['DELETE', '/posts/{id}', 'PostController@destroy'],
+                ['GET', '/posts', 'App\Controllers\PostController@index'],
+                ['POST', '/posts', 'App\Controllers\PostController@store'],
+                ['GET', '/posts/{id}', 'App\Controllers\PostController@show'],
+                ['PUT', '/posts/{id}', 'App\Controllers\PostController@update'],
+                ['DELETE', '/posts/{id}', 'App\Controllers\PostController@destroy'],
                 
                 // 评论相关
-                ['GET', '/posts/{postId}/comments', 'CommentController@index'],
-                ['POST', '/posts/{postId}/comments', 'CommentController@store'],
+                ['GET', '/posts/{postId}/comments', 'App\Controllers\CommentController@index'],
+                ['POST', '/posts/{postId}/comments', 'App\Controllers\CommentController@store'],
             ]
         ],
         
         // 管理后台路由组
         'admin' => [
             'prefix' => 'admin',
-            'middleware' => ['admin', 'auth'],
+            'middleware' => [
+                App\Middleware\AuthMiddleware::class,
+                App\Middleware\AdminMiddleware::class
+            ],
             'routes' => [
-                ['GET', '/dashboard', 'Admin\DashboardController@index'],
-                ['GET', '/users', 'Admin\UserController@index'],
-                ['GET', '/posts', 'Admin\PostController@index'],
+                ['GET', '/dashboard', 'App\Controllers\Admin\DashboardController@index'],
+                ['GET', '/users', 'App\Controllers\Admin\UserController@index'],
+                ['GET', '/posts', 'App\Controllers\Admin\PostController@index'],
             ]
         ]
     ]
