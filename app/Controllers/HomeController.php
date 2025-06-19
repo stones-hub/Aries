@@ -2,15 +2,24 @@
 
 namespace App\Controllers;
 
-use Aries\Http\Controller;
+use Aries\Http\Request;
 use Aries\Http\Response;
 
-class HomeController extends Controller
+class HomeController
 {
-    public function index(): Response
+    public function index(Request $request)
     {
-        return $this->json([
-            'message' => 'Welcome to Aries Framework!'
+        return (new Response())->json([
+            'message' => 'Welcome to Aries Framework'
+        ]);
+    }
+
+    public function about(Request $request)
+    {
+        return (new Response())->json([
+            'name' => 'Aries Framework',
+            'version' => '1.0.0',
+            'description' => 'A high-performance PHP framework based on Swoole'
         ]);
     }
 } 

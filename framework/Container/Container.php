@@ -240,4 +240,23 @@ class Container
         return isset($this->bindings[$abstract]) ||
                isset($this->instances[$abstract]);
     }
+
+    /**
+     * 调用一个闭包或类方法，支持依赖注入
+     *
+     * @param callable|array $callback
+     * @param array $parameters
+     * @return mixed
+     */
+    public function call($callback, array $parameters = [])
+    {
+        if ($callback instanceof Closure) {
+            return $callback($this, ...array_values($parameters));
+        }
+
+        [$class, $method] = $callback;
+        $instance = is_string($class) ? $this->make($class) : $class;
+        
+        return $instance->$method(...array_values($parameters));
+    }
 } 

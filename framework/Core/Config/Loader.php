@@ -41,10 +41,11 @@ class Loader
     /**
      * 获取单例实例
      */
-    public static function getInstance(): self
+    public static function getInstance(? string $configPath = null): self
     {
         if (self::$instance === null) {
-            self::$instance = new self(dirname(__DIR__, 3) . '/config');
+            $configPath = $configPath ?? dirname(__DIR__, 3) . '/config';
+            self::$instance = new self($configPath);
         }
         return self::$instance;
     }
