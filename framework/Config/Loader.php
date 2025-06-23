@@ -1,10 +1,10 @@
 <?php
 
-namespace Aries\Core\Config;
+namespace Aries\Config;
 
-use Aries\Core\Config\Loaders\JsonLoader;
-use Aries\Core\Config\Loaders\PhpLoader;
-use Aries\Core\Config\Loaders\YamlLoader;
+use Aries\Config\Loaders\JsonLoader;
+use Aries\Config\Loaders\PhpLoader;
+use Aries\Config\Loaders\YamlLoader;
 
 class Loader
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Aries\Core\Config\Loaders;
+namespace Aries\Config\Loaders;
 
-use Aries\Core\Config\ConfigLoaderInterface;
+use Aries\Config\ConfigLoaderInterface;
 
 class PhpLoader implements ConfigLoaderInterface
 {

@@ -16,12 +16,12 @@ return [
         'api' => [
             'prefix' => 'api', // 所有该组下的路由都会自动添加 /api 前缀
             'middleware' => [
-                App\Middleware\ApiMiddleware::class, // API
+                App\Middleware\AuthMiddleware::class, // API 中间件
             ],
             'routes' => [
                 ['GET', '/users', 'App\Controllers\UserController@index'],
                 // 这条路由最终的路径是 /api/users
-                // 并且它会经过 ApiMiddleware 中间件
+                // 并且它会经过 AuthMiddleware 中间件
             ]
         ],
         
@@ -30,12 +30,11 @@ return [
             'prefix' => 'admin',
             'middleware' => [
                 App\Middleware\AuthMiddleware::class,
-                App\Middleware\AdminMiddleware::class
             ],
             'routes' => [
                 ['GET', '/dashboard', 'App\Controllers\Admin\DashboardController@index'],
                 // 最终路径: /admin/dashboard
-                // 会依次经过 AuthMiddleware 和 AdminMiddleware
+                // 会依次经过 AuthMiddleware
             ]
         ]
     ]

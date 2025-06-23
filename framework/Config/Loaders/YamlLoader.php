@@ -1,8 +1,8 @@
 <?php
 
-namespace Aries\Core\Config\Loaders;
+namespace Aries\Config\Loaders;
 
-use Aries\Core\Config\ConfigLoaderInterface;
+use Aries\Config\ConfigLoaderInterface;
 use Symfony\Component\Yaml\Yaml;
 
 class YamlLoader implements ConfigLoaderInterface

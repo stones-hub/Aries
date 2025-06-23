@@ -23,7 +23,7 @@ class CorsMiddleware implements MiddlewareInterface
         $this->options = array_merge($this->options, $options);
     }
 
-    public function process(callable $next): callable
+    public function handler(callable $next): callable
     {
         return function (Request $request, Response $response) use ($next) {
             // 添加 CORS 头

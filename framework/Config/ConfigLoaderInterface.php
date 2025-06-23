@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aries\Core\Config;
+namespace Aries\Config;
 
 interface ConfigLoaderInterface
 {

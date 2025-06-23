@@ -15,5 +15,5 @@ interface MiddlewareInterface
      * @param callable $next 下一个处理器，格式为 function(Request $request, Response $response)
      * @return callable 返回新的处理器，格式同样为 function(Request $request, Response $response)
      */
-    public function process(callable $next): callable;
+    public function handler(callable $next): callable;
 } 
