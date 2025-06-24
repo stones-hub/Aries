@@ -1,0 +1,71 @@
+{
+    "name": "stones-hub/aries",
+    "description": "A high-performance coroutine framework based on Swoole",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "framework",
+        "swoole",
+        "coroutine",
+        "php8",
+        "attributes"
+    ],
+    "autoload": {
+        "psr-4": {
+            "StonesHub\\Aries\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "StonesHub\\Aries\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "yelei",
+            "email": "61647649@qq.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.0",
+        "ext-swoole": ">=5.0",
+        "nikic/fast-route": "^1.3",
+        "nyholm/psr7": "^1.8",
+        "php-di/php-di": "^7.0",
+        "psr/container": "^2.0",
+        "psr/http-message": "^2.0",
+        "psr/http-server-handler": "^1.0",
+        "psr/http-server-middleware": "^1.0",
+        "symfony/property-access": "^6.0",
+        "symfony/serializer": "^6.0",
+        "symfony/yaml": "^6.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpstan/phpstan": "^1.0",
+        "phpunit/phpunit": "^9.0",
+        "swoole/ide-helper": "^5.0",
+        "vimeo/psalm": "^5.0"
+    },
+    "scripts": {
+        "test": "phpunit",
+        "cs-fix": "php-cs-fixer fix --config=.php-cs-fixer.php",
+        "analyse": [
+            "@phpstan",
+            "@psalm"
+        ],
+        "phpstan": "phpstan analyse",
+        "psalm": "psalm"
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0-dev"
+        }
+    }
+}

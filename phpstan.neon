@@ -1,0 +1,15 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - tests/bootstrap.php
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    ignoreErrors:
+        - '#PHPDoc tag @throws with type .* is not subtype of Throwable#'
+        - '#Call to an undefined method DI\\ContainerBuilder::#'
+        - '#Call to an undefined method DI\\Container::#'
+        - '#Parameter .* of class .* constructor expects .*, DI\\Container given#'
+        - '#Cannot call method .* on DI\\Container\|null#' 
